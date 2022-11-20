@@ -11,7 +11,7 @@ const getRandomNumber = (from, to) => {
 
 const checkComLen = (comment, maxLen) => comment.length <= maxLen;
 
-const createPhotoDescription = () => {
+const createPictureDescription = () => {
   let imageId = 0;
 
   const fillComments = () => {
@@ -23,7 +23,7 @@ const createPhotoDescription = () => {
           id: ++imageId,
           avatar: `img/avatar-${getRandomNumber(1, 6)}.svg`,
           message: checkComLen(comment, 1000) ? comment : comment.slice(0, 1000),
-          name: NAMES[getRandomNumber(0, 24)]
+          name: NAMES[getRandomNumber(0, 25)]
         });
     }
     return comments;
@@ -38,6 +38,6 @@ const createPhotoDescription = () => {
   }));
 };
 
-export {createPhotoDescription};
+export {createPictureDescription};
 
 
