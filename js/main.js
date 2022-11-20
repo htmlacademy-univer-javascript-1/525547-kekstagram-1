@@ -1,3 +1,3 @@
-import {createPhotoDescription} from './util.js';
+import {renderPictures} from './drawMiniatures.js';
 
-createPhotoDescription();
+renderPictures();
