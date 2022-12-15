@@ -1,3 +1,5 @@
+import {isEscKey} from './utils.js';
+
 const bigPictureElement = document.querySelector('.big-picture');
 const bigPicture = document.querySelector('.big-picture__img img');
 
@@ -55,7 +57,7 @@ const initBigPicture = (picture) => {
   renderComments(picture);
 
   document.addEventListener('keydown',  (evt) => {
-    if (evt.key === 'Escape') {
+    if (isEscKey(evt.key)) {
       closePictureModal();
     }
   });

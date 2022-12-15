@@ -1,5 +1,5 @@
-import {createPictureDescription} from './util.js';
-import {initBigPicture} from './showFullSizePicture.js';
+import {createPictureDescription} from './utils.js';
+import {initBigPicture} from './show-full-size-picture.js';
 
 const picturesListElem = document.querySelector('.pictures');
 const pictureTemplate = document.querySelector('#picture')
