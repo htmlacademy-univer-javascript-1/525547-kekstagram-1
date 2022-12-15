@@ -35,8 +35,10 @@ const createPicture = () => Array(25).fill(undefined, undefined, undefined).map(
   comments: fillComments()
 }));
 
+const isEscKey = (keyCode) => keyCode === 'Escape';
+
 const createPictureDescription = () => createPicture();
 
-export {createPictureDescription};
+export {createPictureDescription, isEscKey};
 
 
