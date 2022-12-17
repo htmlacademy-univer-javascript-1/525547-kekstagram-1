@@ -35,10 +35,48 @@ const createPicture = () => Array(25).fill(undefined, undefined, undefined).map(
   comments: fillComments()
 }));
 
+const EFFECTS = {
+  chrome: {
+    min: 0,
+    max: 1,
+    step: 0.1,
+    style: 'grayscale',
+    unit: '',
+  },
+  marvin: {
+    min: 0,
+    max: 100,
+    step: 1,
+    style: 'invert',
+    unit: '%',
+  },
+  sepia: {
+    min: 0,
+    max: 1,
+    step: 0.1,
+    style: 'sepia',
+    unit: '',
+  },
+  phobos: {
+    min: 0,
+    max: 3,
+    step: 0.1,
+    style: 'blur',
+    unit: 'px',
+  },
+  heat: {
+    min: 1,
+    max: 3,
+    step: 0.1,
+    style: 'brightness',
+    unit: '',
+  }
+};
+
 const isEscKey = (keyCode) => keyCode === 'Escape';
 
 const createPictureDescription = () => createPicture();
 
-export {createPictureDescription, isEscKey};
+export {createPictureDescription, isEscKey, EFFECTS};
 
 

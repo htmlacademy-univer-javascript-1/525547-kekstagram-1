@@ -1,4 +1,4 @@
-import {isEscKey} from './utils.js';
+import {isEscKey, EFFECTS} from './utils.js';
 
 const uploadImage = document.querySelector('#upload-file');
 const overlayImage = document.querySelector('.img-upload__overlay');
@@ -45,62 +45,22 @@ const onScaleControlBiggerClick = () => {
 };
 
 const applyEffectOnImage = (evt) => {
-  selectedEffect = evt.target.id;let currentMin;
-  let currentMax;
-  let currentStart;
-  let currentStep;
-  switch (selectedEffect) {
-    case 'effect-none':
-      currentMin = 0;
-      currentMax = 100;
-      currentStart = 100;
-      currentStep = 1;
-      break;
-    case 'effect-chrome':
-      currentMin = 0;
-      currentMax = 1;
-      currentStep = 0.1;
-      currentStart = 1;
-      break;
-    case 'effect-sepia':
-      currentMin = 0;
-      currentMax = 1;
-      currentStep = 0.1;
-      currentStart = 1;
-      break;
-    case 'effect-marvin':
-      currentMin = 0;
-      currentMax = 100;
-      currentStep = 1;
-      currentStart = 100;
-      break;
-    case 'effect-phobos':
-      currentMin = 0;
-      currentMax = 3;
-      currentStep = 0.1;
-      currentStart = 3;
-      break;
-    case 'effect-heat':
-      currentMin = 1;
-      currentMax = 3;
-      currentStep = 0.1;
-      currentStart = 3;
-      break;
+  selectedEffect = evt.target.value;
+  const effectConfig = EFFECTS[selectedEffect];
+  if (!effectConfig) {
+    sliderField.classList.add('hidden');
+    return;
   }
+  sliderField.classList.remove('hidden');
+
+  const {min, max, step} = effectConfig;
+
   slider.noUiSlider.updateOptions({
-    range: {
-      min: currentMin,
-      max: currentMax
-    },
-    start: currentStart,
-    step: currentStep
+    range: {min, max},
+    start: max,
+    step,
   });
 
-  if (selectedEffect !== 'effect-none') {
-    sliderField.classList.remove('hidden');
-  } else {
-    sliderField.classList.add('hidden');
-  }
   previewImage.className = 'img-upload__preview';
   const effectsPreview = evt.target.parentNode.querySelector('.effects__preview');
   previewImage.classList.add(effectsPreview.getAttribute('class').split('  ')[1]);
@@ -109,25 +69,10 @@ const applyEffectOnImage = (evt) => {
 const changeEffectIntensity = () => {
   const sliderValue = slider.noUiSlider.get();
   effectLevelInput.value = sliderValue;
-  let filter;
-  switch (selectedEffect) {
-    case 'effect-chrome':
-      filter = `grayscale(${sliderValue})`;
-      break;
-    case 'effect-sepia':
-      filter = `sepia(${sliderValue})`;
-      break;
-    case 'effect-marvin':
-      filter = `invert(${sliderValue}%)`;
-      break;
-    case 'effect-phobos':
-      filter = `blur(${sliderValue}px)`;
-      break;
-    case 'effect-heat':
-      filter = `brightness(${sliderValue})`;
-      break;
-  }
-  previewImage.style.filter = selectedEffect === 'effect-none' ? '' : filter;
+  const effectConfig = EFFECTS[selectedEffect];
+  previewImage.style.filter = effectConfig
+    ? `${effectConfig.style}(${sliderValue}${effectConfig.unit})`
+    : '';
 };
 
 const closeOverlay = () => {
@@ -163,7 +108,7 @@ uploadImage.addEventListener('change', () => {
 
   scaleControl.value = '100%';
   previewImage.style.transform = 'scale(1)';
-  scaleControlSmaller.addEventListener('click',  onScaleControlSmallerClick);
+  scaleControlSmaller.addEventListener('click', onScaleControlSmallerClick);
   scaleControlBigger.addEventListener('click', onScaleControlBiggerClick);
 
   selectedEffect = 'effect-none';
@@ -178,7 +123,6 @@ uploadImage.addEventListener('change', () => {
       max: 100,
     },
     start: 100,
-    connect: 'lower'
   });
   slider.noUiSlider.on('update', changeEffectIntensity);
 });
