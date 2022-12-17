@@ -1,4 +1,4 @@
-import { showErrorMessage } from './error-handle.js';
+import {showErrorMessage} from './error-handle.js';
 
 const SERVER_RECEIVE_FROM = 'https://26.javascript.pages.academy/kekstagram/data';
 const SERVER_SEND_TO = 'https://26.javascript.pages.academy/kekstagram';
@@ -39,4 +39,4 @@ function reasonFromResponse(response) {
   return `${response.status} ${response.statusText}`;
 }
 
-export { receiveData, sendData };
+export {receiveData, sendData};

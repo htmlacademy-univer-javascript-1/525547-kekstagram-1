@@ -1,4 +1,12 @@
 import {isEscKey, EFFECTS} from './utils.js';
+import {sendData} from './fetch-data.js';
+
+const documentBody = document.querySelector('body');
+
+const successfulSubmission = document.querySelector('#success').content.querySelector('.success');
+const errSubmission = document.querySelector('#error').content.querySelector('.error');
+const successButton = successfulSubmission.querySelector('.success__button');
+const errorButton = errSubmission.querySelector('.error__button');
 
 const uploadImage = document.querySelector('#upload-file');
 const overlayImage = document.querySelector('.img-upload__overlay');
@@ -7,6 +15,7 @@ const closeButton = document.querySelector('#upload-cancel');
 const form = document.querySelector('.img-upload__form');
 const hashtagInput = form.querySelector('.text__hashtags');
 const commentInput = form.querySelector('.text__description');
+const submitButton = form.querySelector('.img-upload__submit');
 
 const scaleControl = overlayImage.querySelector('.scale__control--value');
 const previewImage = overlayImage.querySelector('.img-upload__preview');
@@ -48,6 +57,7 @@ const applyEffectOnImage = (evt) => {
   selectedEffect = evt.target.value;
   const effectConfig = EFFECTS[selectedEffect];
   if (!effectConfig) {
+    previewImage.style.filter = 'none';
     sliderField.classList.add('hidden');
     return;
   }
@@ -70,9 +80,10 @@ const changeEffectIntensity = () => {
   const sliderValue = slider.noUiSlider.get();
   effectLevelInput.value = sliderValue;
   const effectConfig = EFFECTS[selectedEffect];
-  previewImage.style.filter = effectConfig
-    ? `${effectConfig.style}(${sliderValue}${effectConfig.unit})`
-    : '';
+  if (!effectConfig) {
+    return;
+  }
+  previewImage.style.filter = `${effectConfig.style}(${sliderValue}${effectConfig.unit})`;
 };
 
 const closeOverlay = () => {
@@ -114,7 +125,7 @@ uploadImage.addEventListener('change', () => {
   selectedEffect = 'effect-none';
   previewImage.className = 'img-upload__preview';
   previewImage.classList.add('effects__preview--none');
-  effects.addEventListener('change', (evt) => applyEffectOnImage(evt));
+  effects.addEventListener('change', applyEffectOnImage);
 
   sliderField.classList.add('hidden');
   noUiSlider.create(slider, {
@@ -123,6 +134,7 @@ uploadImage.addEventListener('change', () => {
       max: 100,
     },
     start: 100,
+    connect: 'lower'
   });
   slider.noUiSlider.on('update', changeEffectIntensity);
 });
@@ -157,6 +169,16 @@ const validateHashtags = (values) => {
 
 const validateComment = (value) => isCorrectComment(value);
 
+const disableSubmitButton = () => {
+  submitButton.disabled = true;
+  submitButton.textContent = 'Идет публикация...';
+};
+
+const enableSubmitButton = () => {
+  submitButton.disabled = false;
+  submitButton.textContent = 'Опубликовать';
+};
+
 pristine.addValidator(
   hashtagInput,
   (value) => validateHashtags(value),
@@ -183,9 +205,52 @@ pristine.addValidator(
   'Длина комментария не должна превышать 140 символов'
 );
 
+const closeMessages = () => {
+  if (documentBody.contains(successfulSubmission)) {
+    documentBody.removeChild(successfulSubmission);
+  }
+  if (documentBody.contains(errSubmission)) {
+    overlayImage.classList.remove('hidden');
+    documentBody.removeChild(errSubmission);
+  }
+  removeEventListenersMsg();
+};
+
+const onCloseSuccessMsgClick = (evt) => {
+  if (evt.target === successfulSubmission) {
+    closeMessages();
+  }
+};
+
+function removeEventListenersMsg() {
+  document.removeEventListener('click', onCloseSuccessMsgClick);
+  successButton.removeEventListener('click', closeMessages);
+  errorButton.removeEventListener('click', closeMessages);
+}
+
+const successFunc = () => {
+  closeOverlay();
+  enableSubmitButton();
+  successButton.addEventListener('click', closeMessages);
+  document.addEventListener('click', onCloseSuccessMsgClick);
+  documentBody.appendChild(successfulSubmission);
+};
+
+const errorFunc = () => {
+  overlayImage.classList.add('hidden');
+  enableSubmitButton();
+  errorButton.addEventListener('click', closeMessages);
+  documentBody.appendChild(errSubmission);
+};
+
 form.addEventListener('submit', (evt) => {
   const isValidForm = pristine.validate();
-  if (!isValidForm) {
-    evt.preventDefault();
+  if (isValidForm) {
+    disableSubmitButton();
+    sendData(
+      new FormData(evt.target),
+      successFunc,
+      errorFunc
+    );
   }
 });
