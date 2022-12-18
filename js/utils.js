@@ -1,39 +1,4 @@
-import {DESCRIPTIONS, COMMENTS, NAMES} from './data.js';
-
-const getRandomNumber = (from, to) => {
-  if (from < 0 || to < 0) {
-    throw new Error();
-  }
-  const max = Math.max(from, to);
-  const min = Math.min(from, to);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-const checkComLen = (comment, maxLen) => comment.length <= maxLen;
-
-const fillComments = () => {
-  let commentId = 0;
-  const comments = [];
-  for (let i = 0; i < getRandomNumber(5, 20); i++) {
-    const comment = COMMENTS[getRandomNumber(0, 5)];
-    comments.push(
-      {
-        id: ++commentId,
-        avatar: `img/avatar-${getRandomNumber(2, 6)}.svg`,
-        message: checkComLen(comment, 1000) ? comment : comment.slice(0, 1000),
-        name: NAMES[getRandomNumber(0, 25)]
-      });
-  }
-  return comments;
-};
-
-const createPicture = () => Array(25).fill(undefined, undefined, undefined).map((elem, index) => ({
-  id: index + 1,
-  url: `photos/${index + 1}.jpg`,
-  description: DESCRIPTIONS[getRandomNumber(0, 3)],
-  likes: getRandomNumber(15, 200),
-  comments: fillComments()
-}));
+const documentBody = document.querySelector('body');
 
 const EFFECTS = {
   chrome: {
@@ -73,10 +38,25 @@ const EFFECTS = {
   }
 };
 
+const showAlert = (message) => {
+  const alertTemplate = `
+    <div class="alert-container" style="z-index: 100; background-color: rgba(95,86,32,0.62); position: fixed; left: 0; top: 0; bottom: 0; right: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+      <div class="alert-block" style="padding: 3%; position: relative; display: flex; justify-content: center; align-items: center; width: 50%; height: 50%; font-size: 25px; line-height: 1.5; text-align: center; background-color: #3c3614; color: #ffe753; border-radius: 10px;">
+        ${message}
+      </div>
+    </div>
+  `;
+
+  const template = document.createElement('template');
+  template.innerHTML = alertTemplate;
+
+  const alertContainer = template.content.firstElementChild;
+  documentBody.appendChild(alertContainer);
+};
+
+
 const isEscKey = (keyCode) => keyCode === 'Escape';
 
-const createPictureDescription = () => createPicture();
-
-export {createPictureDescription, isEscKey, EFFECTS};
+export {isEscKey, EFFECTS, showAlert};
 
 

@@ -1,5 +1,5 @@
 import {isEscKey, EFFECTS} from './utils.js';
-import {sendData} from './fetch-data.js';
+import {sendData} from './server-data.js';
 
 const documentBody = document.querySelector('body');
 
@@ -222,9 +222,23 @@ const onCloseSuccessMsgClick = (evt) => {
   }
 };
 
+const onCloseErrorMsgClick = (evt) => {
+  if (evt.target === errSubmission) {
+    closeMessages();
+  }
+};
+
+const onErrorMsgEscKeydown = (evt) => {
+  if (isEscKey(evt.key)) {
+    closeMessages();
+  }
+};
+
 function removeEventListenersMsg() {
+  document.removeEventListener('keydown', onErrorMsgEscKeydown);
   document.removeEventListener('click', onCloseSuccessMsgClick);
   successButton.removeEventListener('click', closeMessages);
+  document.removeEventListener('click', onCloseErrorMsgClick);
   errorButton.removeEventListener('click', closeMessages);
 }
 
@@ -232,6 +246,7 @@ const successFunc = () => {
   closeOverlay();
   enableSubmitButton();
   successButton.addEventListener('click', closeMessages);
+  document.addEventListener('keydown', onErrorMsgEscKeydown);
   document.addEventListener('click', onCloseSuccessMsgClick);
   documentBody.appendChild(successfulSubmission);
 };
@@ -240,17 +255,20 @@ const errorFunc = () => {
   overlayImage.classList.add('hidden');
   enableSubmitButton();
   errorButton.addEventListener('click', closeMessages);
+  document.addEventListener('keydown', onErrorMsgEscKeydown);
+  document.addEventListener('click', onCloseErrorMsgClick);
   documentBody.appendChild(errSubmission);
 };
 
 form.addEventListener('submit', (evt) => {
+  evt.preventDefault();
   const isValidForm = pristine.validate();
   if (isValidForm) {
     disableSubmitButton();
     sendData(
-      new FormData(evt.target),
+      errorFunc,
       successFunc,
-      errorFunc
+      new FormData(evt.target)
     );
   }
 });
