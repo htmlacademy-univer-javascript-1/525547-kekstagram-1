@@ -26,7 +26,9 @@ const sendData = (onSuccess, onFail, body) => {
   })
     .then((response) => {
       if (response.ok) {
-        onSuccess();
+        response.json().then((posts) => {
+          onSuccess(posts);
+        });
       } else {
         throw new Error('Not OK response');
       }
