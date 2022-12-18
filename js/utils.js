@@ -54,7 +54,6 @@ const showAlert = (message) => {
   documentBody.appendChild(alertContainer);
 };
 
-
 const isEscKey = (keyCode) => keyCode === 'Escape';
 
 export {isEscKey, EFFECTS, showAlert};
