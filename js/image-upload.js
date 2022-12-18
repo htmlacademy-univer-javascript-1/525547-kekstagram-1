@@ -266,8 +266,8 @@ form.addEventListener('submit', (evt) => {
   if (isValidForm) {
     disableSubmitButton();
     sendData(
-      errorFunc,
       successFunc,
+      errorFunc,
       new FormData(evt.target)
     );
   }

@@ -3,6 +3,7 @@ import {initialRenderPictures} from './draw-miniatures.js';
 import {receiveData} from './server-data.js';
 import {showAlert} from './utils.js';
 import './image-upload.js';
+import './file-choose.js';
 
 receiveData((pictures) => {
   initialRenderPictures(pictures);

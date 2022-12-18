@@ -56,6 +56,8 @@ const showAlert = (message) => {
 
 const isEscKey = (keyCode) => keyCode === 'Escape';
 
-export {isEscKey, EFFECTS, showAlert};
+const FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
+
+export {isEscKey, EFFECTS, showAlert, FILE_TYPES};
 
 
