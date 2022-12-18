@@ -1,4 +1,12 @@
-import {isEscKey} from './utils.js';
+import {isEscKey, EFFECTS} from './utils.js';
+import {sendData} from './server-data.js';
+
+const documentBody = document.querySelector('body');
+
+const successfulSubmission = document.querySelector('#success').content.querySelector('.success');
+const errSubmission = document.querySelector('#error').content.querySelector('.error');
+const successButton = successfulSubmission.querySelector('.success__button');
+const errorButton = errSubmission.querySelector('.error__button');
 
 const uploadImage = document.querySelector('#upload-file');
 const overlayImage = document.querySelector('.img-upload__overlay');
@@ -7,6 +15,7 @@ const closeButton = document.querySelector('#upload-cancel');
 const form = document.querySelector('.img-upload__form');
 const hashtagInput = form.querySelector('.text__hashtags');
 const commentInput = form.querySelector('.text__description');
+const submitButton = form.querySelector('.img-upload__submit');
 
 const scaleControl = overlayImage.querySelector('.scale__control--value');
 const previewImage = overlayImage.querySelector('.img-upload__preview');
@@ -45,62 +54,23 @@ const onScaleControlBiggerClick = () => {
 };
 
 const applyEffectOnImage = (evt) => {
-  selectedEffect = evt.target.id;let currentMin;
-  let currentMax;
-  let currentStart;
-  let currentStep;
-  switch (selectedEffect) {
-    case 'effect-none':
-      currentMin = 0;
-      currentMax = 100;
-      currentStart = 100;
-      currentStep = 1;
-      break;
-    case 'effect-chrome':
-      currentMin = 0;
-      currentMax = 1;
-      currentStep = 0.1;
-      currentStart = 1;
-      break;
-    case 'effect-sepia':
-      currentMin = 0;
-      currentMax = 1;
-      currentStep = 0.1;
-      currentStart = 1;
-      break;
-    case 'effect-marvin':
-      currentMin = 0;
-      currentMax = 100;
-      currentStep = 1;
-      currentStart = 100;
-      break;
-    case 'effect-phobos':
-      currentMin = 0;
-      currentMax = 3;
-      currentStep = 0.1;
-      currentStart = 3;
-      break;
-    case 'effect-heat':
-      currentMin = 1;
-      currentMax = 3;
-      currentStep = 0.1;
-      currentStart = 3;
-      break;
+  selectedEffect = evt.target.value;
+  const effectConfig = EFFECTS[selectedEffect];
+  if (!effectConfig) {
+    previewImage.style.filter = 'none';
+    sliderField.classList.add('hidden');
+    return;
   }
+  sliderField.classList.remove('hidden');
+
+  const {min, max, step} = effectConfig;
+
   slider.noUiSlider.updateOptions({
-    range: {
-      min: currentMin,
-      max: currentMax
-    },
-    start: currentStart,
-    step: currentStep
+    range: {min, max},
+    start: max,
+    step,
   });
 
-  if (selectedEffect !== 'effect-none') {
-    sliderField.classList.remove('hidden');
-  } else {
-    sliderField.classList.add('hidden');
-  }
   previewImage.className = 'img-upload__preview';
   const effectsPreview = evt.target.parentNode.querySelector('.effects__preview');
   previewImage.classList.add(effectsPreview.getAttribute('class').split('  ')[1]);
@@ -109,25 +79,11 @@ const applyEffectOnImage = (evt) => {
 const changeEffectIntensity = () => {
   const sliderValue = slider.noUiSlider.get();
   effectLevelInput.value = sliderValue;
-  let filter;
-  switch (selectedEffect) {
-    case 'effect-chrome':
-      filter = `grayscale(${sliderValue})`;
-      break;
-    case 'effect-sepia':
-      filter = `sepia(${sliderValue})`;
-      break;
-    case 'effect-marvin':
-      filter = `invert(${sliderValue}%)`;
-      break;
-    case 'effect-phobos':
-      filter = `blur(${sliderValue}px)`;
-      break;
-    case 'effect-heat':
-      filter = `brightness(${sliderValue})`;
-      break;
+  const effectConfig = EFFECTS[selectedEffect];
+  if (!effectConfig) {
+    return;
   }
-  previewImage.style.filter = selectedEffect === 'effect-none' ? '' : filter;
+  previewImage.style.filter = `${effectConfig.style}(${sliderValue}${effectConfig.unit})`;
 };
 
 const closeOverlay = () => {
@@ -163,13 +119,13 @@ uploadImage.addEventListener('change', () => {
 
   scaleControl.value = '100%';
   previewImage.style.transform = 'scale(1)';
-  scaleControlSmaller.addEventListener('click',  onScaleControlSmallerClick);
+  scaleControlSmaller.addEventListener('click', onScaleControlSmallerClick);
   scaleControlBigger.addEventListener('click', onScaleControlBiggerClick);
 
   selectedEffect = 'effect-none';
   previewImage.className = 'img-upload__preview';
   previewImage.classList.add('effects__preview--none');
-  effects.addEventListener('change', (evt) => applyEffectOnImage(evt));
+  effects.addEventListener('change', applyEffectOnImage);
 
   sliderField.classList.add('hidden');
   noUiSlider.create(slider, {
@@ -213,6 +169,16 @@ const validateHashtags = (values) => {
 
 const validateComment = (value) => isCorrectComment(value);
 
+const disableSubmitButton = () => {
+  submitButton.disabled = true;
+  submitButton.textContent = 'Идет публикация...';
+};
+
+const enableSubmitButton = () => {
+  submitButton.disabled = false;
+  submitButton.textContent = 'Опубликовать';
+};
+
 pristine.addValidator(
   hashtagInput,
   (value) => validateHashtags(value),
@@ -239,9 +205,70 @@ pristine.addValidator(
   'Длина комментария не должна превышать 140 символов'
 );
 
+const closeMessages = () => {
+  if (documentBody.contains(successfulSubmission)) {
+    documentBody.removeChild(successfulSubmission);
+  }
+  if (documentBody.contains(errSubmission)) {
+    overlayImage.classList.remove('hidden');
+    documentBody.removeChild(errSubmission);
+  }
+  removeEventListenersMsg();
+};
+
+const onCloseSuccessMsgClick = (evt) => {
+  if (evt.target === successfulSubmission) {
+    closeMessages();
+  }
+};
+
+const onCloseErrorMsgClick = (evt) => {
+  if (evt.target === errSubmission) {
+    closeMessages();
+  }
+};
+
+const onErrorMsgEscKeydown = (evt) => {
+  if (isEscKey(evt.key)) {
+    closeMessages();
+  }
+};
+
+function removeEventListenersMsg() {
+  document.removeEventListener('keydown', onErrorMsgEscKeydown);
+  document.removeEventListener('click', onCloseSuccessMsgClick);
+  successButton.removeEventListener('click', closeMessages);
+  document.removeEventListener('click', onCloseErrorMsgClick);
+  errorButton.removeEventListener('click', closeMessages);
+}
+
+const successFunc = () => {
+  closeOverlay();
+  enableSubmitButton();
+  successButton.addEventListener('click', closeMessages);
+  document.addEventListener('keydown', onErrorMsgEscKeydown);
+  document.addEventListener('click', onCloseSuccessMsgClick);
+  documentBody.appendChild(successfulSubmission);
+};
+
+const errorFunc = () => {
+  overlayImage.classList.add('hidden');
+  enableSubmitButton();
+  errorButton.addEventListener('click', closeMessages);
+  document.addEventListener('keydown', onErrorMsgEscKeydown);
+  document.addEventListener('click', onCloseErrorMsgClick);
+  documentBody.appendChild(errSubmission);
+};
+
 form.addEventListener('submit', (evt) => {
+  evt.preventDefault();
   const isValidForm = pristine.validate();
-  if (!isValidForm) {
-    evt.preventDefault();
+  if (isValidForm) {
+    disableSubmitButton();
+    sendData(
+      errorFunc,
+      successFunc,
+      new FormData(evt.target)
+    );
   }
 });

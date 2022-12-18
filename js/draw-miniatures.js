@@ -1,4 +1,3 @@
-import {createPictureDescription} from './utils.js';
 import {initBigPicture} from './show-full-size-picture.js';
 
 const picturesListElem = document.querySelector('.pictures');
@@ -19,8 +18,8 @@ const appendPicture = (picture) => {
   picturesFragment.append(pictureElement);
 };
 
-const renderPictures = () => {
-  createPictureDescription().forEach(appendPicture);
+const renderPictures = (pictures) => {
+  pictures.forEach(appendPicture);
   picturesListElem.append(picturesFragment);
 };
 
